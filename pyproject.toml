@@ -1,0 +1,17 @@
+[project]
+name = "tussler"
+version = "0.1.0"
+description = "A short description of your project"
+authors = [
+    { name="Gideon Aina", email="gideonaina@live.com" }
+]
+readme = "README.md"
+requires-python = ">=3.9"
+
+[project.dependencies]
+# Add your dependencies here, for example:
+# requests = "^2.31.0"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
