@@ -1,24 +1,33 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/alpine
 {
-	"name": "tussler",
+	"name": "Tussler App",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"build":{
-		"dockerfile": "devcontainer.Dockerfile"
-	}
+	// "build":{
+	// 	"dockerfile": "devcontainer.Dockerfile"
+	// },
 	// "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bullseye"
 	// "features": {
 	// 	"ghcr.io/devcontainers/features/python:1": {}
 	// }
+	"service": "tussler-dev",
+	"dockerComposeFile": "../docker-compose.yml",
+	"runServices": ["tussler-dev", "model_loader", "ollama"],
+	"containerEnv": {
+		"ENV": "dev",
+		"LOCAL_LLM": "llama3"
+	},
+	// "overrideCommand": false,
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
+	"forwardPorts": [8501, 11434, 8080, 3000, 5432, 5678],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "uname -a",
+	"postCreateCommand": "pip install uv && uv sync && uv pip install -e .",
+	"workspaceFolder": "/app"
 
 	// Configure tool-specific properties.
 	// "customizations": {},

@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  ollama:
+    volumes:
+      - ollama:/root/.ollama
+    container_name: ollama
+    pull_policy: always
+    tty: true
+    restart: unless-stopped
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    profiles: [common, chat]
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    volumes:
+      - open-webui:/app/backend/data
+    depends_on:
+      - model_loader
+    ports:
+      - 3000:8080
+    environment:
+      - 'OLLAMA_BASE_URL=http://ollama:11434'
+      - 'WEBUI_SECRET_KEY='
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: unless-stopped
+    profiles: [chat]
+
+
+  model_loader:
+    build:
+      context: .
+      dockerfile: ollama.Dockerfile
+    environment:
+      - LOCAL_LLM=${LOCAL_LLM:-llama3} 
+    command: >
+      sh -c '
+        curl http://ollama:11434/api/pull -d '\''{"name": "${LOCAL_LLM}"}'\'' 
+      '
+    depends_on:
+      - ollama
+    restart: "no"
+    profiles: [common, chat]
+  
+  tussler:
+    image: tussler:latest
+    ports:
+      - 8081:8081
+    depends_on:
+      - ollama
+      # - open-webui
+    environment:
+      - ENV=${ENV:-production}  # Default to production if ENV not set
+    command: uvicorn tussler.launcher:app --host 0.0.0.0 --port 8081 --reload
+
+    # command: >
+    #   sh -c "if [ "$ENV" = "development" ]; then
+    #     uvicorn main:app --host 0.0.0.0 --port 8081 --reload
+    #   else
+    #     uvicorn main:app --host 0.0.0.0 --port 8081
+    #   fi"
+    restart: unless-stopped
+    profiles: [prod]
+
+  tussler-dev:
+    build:
+      context: .
+      dockerfile: tussler.Dockerfile
+    ports:
+      - 8081:8081
+    depends_on:
+      - ollama
+      # - open-webui
+    # volumes:
+    #   - ./tussler:/app
+    environment:
+      - ENV=${ENV:-production}  # Default to production if ENV not set
+    command: >
+      sh -c "uvicorn tussler.launcher:app --host 0.0.0.0 --port 8081"
+    restart: unless-stopped
+    profiles: [dev]
+
+volumes:
+  ollama: {}
+  open-webui: {}
