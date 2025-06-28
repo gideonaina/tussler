@@ -1,0 +1,17 @@
+{
+   "rest": {
+      "RestGenerator": {
+         "name": "ollama",
+         "uri": "http://ollama:11434",
+         "method": "post",
+         "headers": {
+            "X-Authorization": "$KEY"
+         },
+         "req_template_json_object": {
+            "text": "$INPUT"
+         },
+         "response_json": true,
+         "response_json_field": "text"
+      }
+   }
+}

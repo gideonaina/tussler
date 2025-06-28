@@ -1,9 +1,6 @@
-# Makefile for Docker Compose operations
-
-# Define Docker Compose file
 COMPOSE_FILE := docker-compose.yml
-
 LOCAL_LLM ?= llama3
+PROFILE ?= dev
 
 .PHONY: help start stop clean
 
@@ -20,15 +17,36 @@ help:
 
 start:
 	@echo "Running with LOCAL_LLM=$(LOCAL_LLM)"
-	LOCAL_LLM=$(LOCAL_LLM) docker-compose -f $(COMPOSE_FILE) up
+	LOCAL_LLM=$(LOCAL_LLM) docker-compose --profile $(PROFILE) -f $(COMPOSE_FILE) up
+
+fresh-start:
+	@echo "Running with LOCAL_LLM=$(LOCAL_LLM)"
+	docker-compose -f $(COMPOSE_FILE) build --no-cache && LOCAL_LLM=$(LOCAL_LLM) docker-compose --profile $(PROFILE) -f $(COMPOSE_FILE) up 
+
+model:
+	LOCAL_LLM=$(LOCAL_LLM) docker-compose --profile model -f $(COMPOSE_FILE) up 
 
 stop:
-	docker-compose -f $(COMPOSE_FILE) down
+	LOCAL_LLM=$(LOCAL_LLM) docker-compose --profile $(PROFILE) -f $(COMPOSE_FILE) down
 
 clean:
 	docker-compose -f $(COMPOSE_FILE) down -v
 
+deep-clean:
+	docker-compose -f $(COMPOSE_FILE) down -v --remove-orphans
+	docker volume prune -f
+	docker network prune -f
+	docker stop $(shell docker ps -aq) || $(shell exit 0)
+	docker rm $(shell docker ps -aq)
+	docker volume rm $(shell docker volume ls -q)
+	docker network rm $(shell docker network ls -q)
 
+tussler-dev:
+	uvicorn tussler.launcher:app --host 0.0.0.0 --port 8081 --reload
+
+test-ollama:
+	@echo "------- Checking Ollama API -----"
+	@curl http://localhost:11434/api/tags
 
 test:
 	@echo "------- Checking Port 11434 -----"

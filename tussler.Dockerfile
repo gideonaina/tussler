@@ -38,5 +38,5 @@ RUN pip install .
 
 EXPOSE 8081
 
-# Start Uvicorn server
-CMD ["uvicorn", "tussler.launcher:app", "--host", "0.0.0.0", "--port", "8081"]
+# # Start Uvicorn server
+# CMD ["uvicorn", "tussler.launcher:app", "--host", "0.0.0.0", "--port", "8081"]

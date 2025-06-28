@@ -5,10 +5,10 @@ description = "An AI read teaming solution based on other open source projects"
 authors = [
     { name="Gideon Aina", email="gideonaina@live.com" }
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "fastapi>=0.115.14",
-    "garak>=0.9.0.11.post1",
+    "garak>=0.11.0",
     "pydantic>=2.11.7",
     "uvicorn>=0.34.3",
 ]

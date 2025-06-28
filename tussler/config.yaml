@@ -1,9 +1,0 @@
-# config.yaml
-probes:
-  - openai.gpt-4
-scanners:
-  - prompt_injection
-  - jailbreak
-reporters:
-  - json
-output_directory: ./garak_output

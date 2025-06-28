@@ -1,0 +1,19 @@
+docker-compose --profile common --profile production up --build
+
+docker run --rm -it -v open-webui:/volume alpine sh 
+cd /volume ls -al
+
+docker compose --profile profile1 --profile profile2 up
+
+docker volume rm -f $(docker volume ls -q) 
+
+curl http://localhost:11434/api/tags
+
+
+OLLAMA_HOST=http://ollama:11434 
+garak --model_type ollama --model_name llama3 --probes encoding
+
+OLLAMA_BASE_URL=http://ollama:11434 
+garak --model_type ollama --model_name llama3 --probes encoding
+
+garak --config tussler/config/ollama_host.yml --model_type ollama --model_name llama3 --probes encoding
