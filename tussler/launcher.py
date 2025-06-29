@@ -1,12 +1,10 @@
-from fastapi import FastAPI, HTTPException, Body
+from fastapi import FastAPI, HTTPException, Request, Body
 from pydantic import BaseModel
-from garak._config import load_base_config, load_config
+import tempfile
+import os
 import garak.cli
 import json
-
-class ScanRequest(BaseModel):
-    probe: str
-    scanners: list[str] = ['prompt_injection']
+import hashlib
 
 app = FastAPI()
 
@@ -15,24 +13,7 @@ def health_check():
     return {'status': 'ok'}
 
 @app.post('/scan')
-def scan(req: ScanRequest = Body(...)):
-    # # Load Garak base and site config
-    # load_base_config()
-    # cfg = load_config()
-
-    # # Set the probe and detectors (scanners) for this run
-    # cfg.probes = [req.probe]
-    # cfg.detectors = req.scanners     # 'scanners' → detectors
-    # cfg.reporters = ['json']
-    # cfg.output_directory = './garak_output'
-
-    # # Build CLI arguments for garak
-    # args = [
-    #     '--probes', req.probe,
-    #     '--detectors', ','.join(req.scanners),
-    #     '--report_prefix', req.probe,
-    #     # '--config', str(cfg)  # (optional: if using a config file or config object)
-    # ]
+def scan(req: Request):
 
     args = [
         '--probes', req.probe,
@@ -55,3 +36,42 @@ def scan(req: ScanRequest = Body(...)):
         raise HTTPException(status_code=500, detail='Report not found')
 
     return {'status': 'completed', 'report': report}
+
+
+@app.post("/submit")
+async def scan(request: Request):
+    tmpfile_path = None
+    try:
+        # Grab raw JSON body
+        config_data = await request.json()
+        report_file = f"{config_data["reporting"]["report_dir"]}/{config_data["reporting"]["report_prefix"]}.report.jsonl"
+
+        config_json_string = json.dumps(config_data)
+        sha256_hash = hashlib.sha256(config_json_string.encode('utf-8')).hexdigest()
+        print("Job ID", sha256_hash)
+
+        # Write to temp file
+        with tempfile.NamedTemporaryFile(mode="w+", suffix=".json", delete=False) as tmpfile:
+            json.dump(config_data, tmpfile)
+            tmpfile_path = tmpfile.name
+
+        # Run Garak with this config
+        garak.cli.main(["--config", tmpfile_path])
+
+        if not os.path.exists(report_file):
+            raise HTTPException(status_code=500, detail="Report file not found after Garak scan")
+        
+        with open(report_file) as f:
+            json_array = [json.loads(line) for line in f if line.strip()]
+
+
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Garak scan failed: {str(e)}")
+    
+    finally:
+        # Always clean up
+        if tmpfile_path and os.path.exists(tmpfile_path):
+            os.unlink(tmpfile_path)
+
+    return {"status": "Scan complete", "job_id": sha256_hash, "config_file": tmpfile_path, "report_file": report_file, "report_json": json_array}

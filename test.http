@@ -1,3 +1,11 @@
+###
+
+GET http://localhost:8081/health HTTP/1.1
+
+###
+POST http://localhost:8081/submit HTTP/1.1
+content-type: application/json
+
 {
   "system": {
     "verbose": 0,
@@ -36,7 +44,7 @@
     }
   },
   "reporting": {
-    "report_dir": "./tmp/garak_output",
+    "report_dir": "/tmp/garak_output",
     "report_prefix": "ollama3_run"
   },
   "metadata":{
@@ -57,3 +65,5 @@
     "engine": "garak"
   }
 }
+
+
