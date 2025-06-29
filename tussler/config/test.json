@@ -1,0 +1,42 @@
+{
+  "system": {
+    "verbose": 0,
+    "parallel_requests": true
+  },
+  "run": {
+    "generations": 1,
+    "deprefix": true
+  },
+  "plugins": {
+    "model_type": "rest",
+    "probe_spec": "encoding",
+    "generators": {
+      "rest": {
+        "RestGenerator": {
+          "uri": "http://ollama:11434/api/generate",
+          "method": "post",
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Authorization": "Bearer test_token"
+          },
+          "req_template_json_object": {
+            "model": "llama3",
+            "messages": [
+              {
+                "role": "user",
+                "content": "$INPUT"
+              }
+            ]
+          },
+          "response_json": true,
+          "response_json_field": "response",
+          "request_timeout": 30
+        }
+      }
+    }
+  },
+  "reporting": {
+    "report_dir": "./tmp/garak_output",
+    "report_prefix": "ollama3_run"
+  }
+}

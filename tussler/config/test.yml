@@ -1,0 +1,46 @@
+system:
+  verbose: 0
+  parallel_requests: true
+
+# Run-level settings (optional)
+run:
+  generations: 1
+  deprefix: true
+
+# Plugin settings: this is where you declare your model & probes
+plugins:
+  ## --model_type
+  model_type: rest
+  
+  ## --model_name
+  # model_name: llama3
+  
+  ## --probes
+  probe_spec: encoding
+  
+  ##  --detectors
+  # detector_spec: encoding
+
+  generators:
+    rest:
+      RestGenerator:
+        # your Ollama chat endpoint
+        uri: "http://ollama:11434/api/generate"
+        method: "post"
+        headers:
+          Content-Type: "application/json"
+          X-Authorization: "Bearer test_token"  
+        # send the messages array expected by Ollama's API
+        req_template_json_object:
+          model: "llama3"
+          messages:
+            - role: user
+              content: "$INPUT"
+        response_json: true
+        response_json_field: "response"
+        request_timeout: 30
+
+# Reporting (optional—chooses output folder & prefix)
+reporting:
+  report_dir: ./tmp/garak_output
+  report_prefix: ollama3_run

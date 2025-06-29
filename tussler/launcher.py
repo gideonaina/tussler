@@ -36,7 +36,9 @@ def scan(req: ScanRequest = Body(...)):
 
     args = [
         '--probes', req.probe,
-        '--detectors', ','.join(req.scanners),
+        '--model_name', req.model_type,
+        '--model_type', req.model_name,
+        # '--detectors', ','.join(req.scanners),
         # '--reporters', 'json',
         # '--output_directory', './garak_output',
         # '--report_prefix', req.probe,
