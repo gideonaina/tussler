@@ -106,6 +106,20 @@ services:
     profiles: 
       - dev
 
+  redis:
+    image: redis:8.0
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/tmp/data
+    restart: unless-stopped
+    profiles: 
+      - prod
+      - dev
+
+
 volumes:
-  ollama: {}
-  open-webui: {}
+  ollama:
+  open-webui:
+  redis_data:
