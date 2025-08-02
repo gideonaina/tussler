@@ -97,10 +97,11 @@ services:
       - .:/app
     environment:
       - ENV=${ENV:-production}
+      - PYTHONUNBUFFERED=1
       # - OLLAMA_HOST=http://ollama:11434
       # - OLLAMA_BASE_URL=http://ollama:11434
     command: >
-      sh -c "uvicorn tussler.launcher:app --host 0.0.0.0 --port 8081 --workers 10 --reload"
+      sh -c "uvicorn tussler.launcher:app --host 0.0.0.0 --port 8081 --log-level info --workers 10 --reload"
     # command: sleep infinity
     restart: unless-stopped
     profiles: 

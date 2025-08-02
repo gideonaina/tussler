@@ -8,12 +8,13 @@ import hashlib
 import asyncio
 import subprocess
 import logging
+import contextlib
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format='%(asctime)s - %(levelname)s - %(message)s'
+# )
+logger = logging.getLogger("uvicorn")
 
 app = FastAPI()
 
@@ -90,6 +91,7 @@ async def run_garak_ws(websocket: WebSocket):
     try:
         await websocket.accept()
         tmpfile_path = None
+        logger.info("WebSocket connection established")
 
         request_data = await websocket.receive_text()
         config_data = json.loads(request_data)
@@ -110,10 +112,11 @@ async def run_garak_ws(websocket: WebSocket):
                 while True:
                     await websocket.send_text("__keepalive__")
                     await asyncio.sleep(2)
-            except (asyncio.CancelledError, WebSocketDisconnect, WebSocketException):
-                return
+            except (asyncio.exceptions.CancelledError, WebSocketDisconnect, WebSocketException):
+                logger.info(" Connection closed in Keep alive bolck: %s", e)
 
         keep_alive_task = asyncio.create_task(keep_alive())
+        logger.info("Keep alive task started")
 
         process = subprocess.Popen(
             ["garak", "--config", tmpfile_path],
@@ -122,194 +125,57 @@ async def run_garak_ws(websocket: WebSocket):
             text=True
         )
 
+        logger.info("Garak process started with PID: %s", process.pid)
+
         for line in process.stdout:
             await websocket.send_text(line.rstrip())
-        process.stdout.close()
-        process.wait()
+        # process.stdout.close()
+        # process.wait()
 
-        # # TaskGroup ensures stream_process runs to the end,
-        # # then automatically cancels keep_alive
-        # async with asyncio.TaskGroup() as tg:
-        #     tg.create_task(keep_alive())
-        #     tg.create_task(stream_process())
+        # try:
+        #     keep_alive_task.cancel()
+        #     await keep_alive_task
+        # except Exception:
+        #     pass
+        logger.info("Garak process completed")
 
-        # keep_alive_task = asyncio.create_task(keep_alive())
-        # stream_task     = asyncio.create_task(stream_process())
+        with open(report_file) as f:
+            report_json = [json.loads(line) for line in f if line.strip()]
 
-        # await stream_task
+        logger.info("Report file read successfully")
+
+        await websocket.send_text(json.dumps({
+            "job_id": sha256_hash,
+            "status": "complete",
+            "config_data": config_data,
+            "report": report_json
+        }))
 
         # keep_alive_task.cancel()
         # with contextlib.suppress(asyncio.CancelledError):
         #     await keep_alive_task
 
-        try:
-            keep_alive_task.cancel()
-            await keep_alive_task
-        except Exception:
-            pass
+        # await websocket.close()
 
-        await websocket.send_text(json.dumps({
-            "job_id": sha256_hash,
-            "status": "complete"
-        }))
-
-        await websocket.close()
-
-#         process = subprocess.Popen(
-#         ["garak", "--config", tmpfile_path],
-#         stdout=subprocess.PIPE,
-#         stderr=subprocess.STDOUT,
-#         text=True
-# )
-
-#         async def keep_alive():
-#             try:
-#                 while process.poll() is None:
-#                     try:
-#                         await websocket.send_text("__keepalive__")
-#                     except (WebSocketDisconnect, RuntimeError, asyncio.CancelledError):
-#                         break  # Exit if connection closed or task cancelled
-#                     await asyncio.sleep(2)
-#             except asyncio.CancelledError:
-#                 pass  # Task was cancelled, exit gracefully
-
-#         # Start keep-alive task
-#         keep_alive_task = asyncio.create_task(keep_alive())
-
-#         try:
-#             for line in process.stdout:
-#                 try:
-#                     await websocket.send_text(line.strip())
-#                 except (WebSocketDisconnect, RuntimeError):
-#                     break  # Stop sending if client disconnects
-#             process.stdout.close()
-#             process.wait()
-#         except Exception as e:
-#             logger.error(f"Error streaming process output: {e}")
-#         finally:
-            
-#             try:
-#                 keep_alive_task.cancel()
-#                 await keep_alive_task
-#             except Exception:
-#                 pass
-
-        # for line in process.stdout:
-        #     await websocket.send_text(line.strip())
-        # await websocket.send_text("✅ Garak process finished.")
-
-        # with open(report_file) as f:
-        #     json_array = [json.loads(line) for line in f if line.strip()]
-        # await websocket.send_text({"job_status": "complete", 
-        #                                 "job_id": sha256_hash, 
-        #                                 "config_file": tmpfile_path, 
-        #                                 "report_file": report_file, 
-        #                                 "report_json": json_array}
-        #                         )
     except WebSocketException as e:
-        await websocket.send_text(f"❌ Error:WebSocketException - {e}")
+        logger.error("❌ Error:WebSocketException - %s", e)
     except Exception as e:
         await websocket.send_text(f"❌ Error: {e}")
     finally:
+        logger.info("Cleaning up resources")
         if tmpfile_path and os.path.exists(tmpfile_path):
             os.unlink(tmpfile_path)
-        # process.stdout.close()
-        # process.wait()
-        # try:
-        #     await websocket.close()
-        # except (WebSocketDisconnect, RuntimeError):
-        #     pass
-
-
-
-# ==============================================================================
-
-# @app.websocket("/ws/v1/submit")
-# async def run_garak_ws(websocket: WebSocket):
-    
-#     try:
-#         await websocket.accept()
-#         tmpfile_path = None
-
-#         request_data = await websocket.receive_text()
-#         config_data = json.loads(request_data)
-
-#         report_file = f"{config_data["reporting"]["report_dir"]}/{config_data["reporting"]["report_prefix"]}.report.jsonl"
-
-#         config_json_string = json.dumps(config_data)
-#         sha256_hash = hashlib.sha256(config_json_string.encode('utf-8')).hexdigest()
-#         logger.info("Job ID: %s", sha256_hash)
-
-#         # Write to temp file
-#         with tempfile.NamedTemporaryFile(mode="w+", suffix=".json", delete=False) as tmpfile:
-#             json.dump(config_data, tmpfile)
-#             tmpfile_path = tmpfile.name
-
-#         process = subprocess.Popen(
-#         ["garak", "--config", tmpfile_path],
-#         stdout=subprocess.PIPE,
-#         stderr=subprocess.STDOUT,
-#         text=True
-# )
-
-#         async def keep_alive():
-#             try:
-#                 while process.poll() is None:
-#                     try:
-#                         await websocket.send_text("__keepalive__")
-#                     except (WebSocketDisconnect, RuntimeError, asyncio.CancelledError):
-#                         break  # Exit if connection closed or task cancelled
-#                     await asyncio.sleep(2)
-#             except asyncio.CancelledError:
-#                 pass  # Task was cancelled, exit gracefully
-
-#         # Start keep-alive task
-#         keep_alive_task = asyncio.create_task(keep_alive())
-
-#         try:
-#             for line in process.stdout:
-#                 try:
-#                     await websocket.send_text(line.strip())
-#                 except (WebSocketDisconnect, RuntimeError):
-#                     break  # Stop sending if client disconnects
-#             process.stdout.close()
-#             process.wait()
-#         except Exception as e:
-#             logger.error(f"Error streaming process output: {e}")
-#         finally:
+        try:
+            process.stdout.close()
+            process.wait()
             
-#             try:
-#                 keep_alive_task.cancel()
-#                 await keep_alive_task
-#             except Exception:
-#                 pass
+            keep_alive_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await keep_alive_task
 
-#         # for line in process.stdout:
-#         #     await websocket.send_text(line.strip())
-#         # await websocket.send_text("✅ Garak process finished.")
-
-#         # with open(report_file) as f:
-#         #     json_array = [json.loads(line) for line in f if line.strip()]
-#         # await websocket.send_text({"job_status": "complete", 
-#         #                                 "job_id": sha256_hash, 
-#         #                                 "config_file": tmpfile_path, 
-#         #                                 "report_file": report_file, 
-#         #                                 "report_json": json_array}
-#         #                         )
-#     except WebSocketException as e:
-#         await websocket.send_text(f"❌ Error:WebSocketException - {e}")
-#     except Exception as e:
-#         await websocket.send_text(f"❌ Error: {e}")
-#     finally:
-#         if tmpfile_path and os.path.exists(tmpfile_path):
-#             os.unlink(tmpfile_path)
-#         process.stdout.close()
-#         process.wait()
-#         try:
-#             await websocket.close()
-#         except (WebSocketDisconnect, RuntimeError):
-#             pass
-
-
-
+            await websocket.close()
+        except (WebSocketDisconnect, RuntimeError):
+            logger.error("❌ Error: %s", e)
+        except Exception as e:
+            logger.error("❌ Error: %s", e)
 
