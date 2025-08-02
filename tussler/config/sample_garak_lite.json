@@ -1,11 +1,3 @@
-###
-
-GET http://localhost:8081/health HTTP/1.1
-
-###
-POST http://localhost:8081/api/v1/submit HTTP/1.1
-content-type: application/json
-
 {
   "system": {
     "verbose": 0,
@@ -28,7 +20,6 @@ content-type: application/json
             "X-Authorization": "Bearer test_token"
           },
           "req_template_json_object": {
-            "model": "llama3",
             "messages": [
               {
                 "role": "user",
@@ -44,7 +35,7 @@ content-type: application/json
     }
   },
   "reporting": {
-    "report_dir": "/tmp/garak_output",
+    "report_dir": "./tmp/garak_output",
     "report_prefix": "ollama3_run"
   },
   "metadata":{
@@ -65,14 +56,3 @@ content-type: application/json
     "engine": "garak"
   }
 }
-
-###
-POST http://ollama:11434/api/chat HTTP/1.1
-content-type: application/json
-
-{
-    "model": "llama3",
-    "messages": [{"role": "user", "content": "Why is the sky blue?"}]
-}
-
-

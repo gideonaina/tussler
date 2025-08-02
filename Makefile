@@ -21,7 +21,7 @@ start:
 
 fresh-start:
 	@echo "Running with LOCAL_LLM=$(LOCAL_LLM)"
-	docker-compose -f $(COMPOSE_FILE) build --no-cache && LOCAL_LLM=$(LOCAL_LLM) docker-compose --profile $(PROFILE) -f $(COMPOSE_FILE) up 
+	docker-compose -f $(COMPOSE_FILE) build --no-cache && LOCAL_LLM=$(LOCAL_LLM) docker-compose --profile $(PROFILE) -f $(COMPOSE_FILE) up --build
 
 model:
 	LOCAL_LLM=$(LOCAL_LLM) docker-compose --profile model -f $(COMPOSE_FILE) up 
@@ -30,16 +30,16 @@ stop:
 	LOCAL_LLM=$(LOCAL_LLM) docker-compose --profile $(PROFILE) -f $(COMPOSE_FILE) down
 
 clean:
-	docker-compose -f $(COMPOSE_FILE) down -v
+	LOCAL_LLM=$(LOCAL_LLM) docker-compose -f $(COMPOSE_FILE) down -v
 
 deep-clean:
-	docker-compose -f $(COMPOSE_FILE) down -v --remove-orphans
-	docker volume prune -f
-	docker network prune -f
-	docker stop $(shell docker ps -aq) || $(shell exit 0)
-	docker rm $(shell docker ps -aq)
-	docker volume rm $(shell docker volume ls -q)
-	docker network rm $(shell docker network ls -q)
+	LOCAL_LLM=$(LOCAL_LLM) docker-compose -f $(COMPOSE_FILE) down -v --remove-orphans
+	LOCAL_LLM=$(LOCAL_LLM) docker volume prune -f
+	LOCAL_LLM=$(LOCAL_LLM) docker network prune -f
+	LOCAL_LLM=$(LOCAL_LLM) docker stop $(shell docker ps -aq) || $(shell exit 0)
+	LOCAL_LLM=$(LOCAL_LLM) docker rm $(shell docker ps -aq)
+	LOCAL_LLM=$(LOCAL_LLM) docker volume rm $(shell docker volume ls -q)
+	LOCAL_LLM=$(LOCAL_LLM) docker network rm $(shell docker network ls -q)
 
 tussler-dev:
 	uvicorn tussler.launcher:app --host 0.0.0.0 --port 8081 --reload

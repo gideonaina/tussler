@@ -100,7 +100,7 @@ services:
       # - OLLAMA_HOST=http://ollama:11434
       # - OLLAMA_BASE_URL=http://ollama:11434
     command: >
-      sh -c "uvicorn tussler.launcher:app --host 0.0.0.0 --port 8081 --reload"
+      sh -c "uvicorn tussler.launcher:app --host 0.0.0.0 --port 8081 --workers 10 --reload"
     # command: sleep infinity
     restart: unless-stopped
     profiles: 
@@ -118,8 +118,20 @@ services:
       - prod
       - dev
 
+  notebook:
+    image: quay.io/jupyter/datascience-notebook:2025-03-14
+    container_name: notebook
+    ports:
+      - 8888:8888
+    volumes:
+      - notebook_data:/home/jovyan/work
+    restart: unless-stopped
+    profiles: 
+      - dev
+
 
 volumes:
   ollama:
   open-webui:
   redis_data:
+  notebook_data:

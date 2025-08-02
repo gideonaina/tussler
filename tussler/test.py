@@ -1,11 +1,7 @@
-###
+import asyncio
+import websockets
 
-GET http://localhost:8081/health HTTP/1.1
-
-###
-POST http://localhost:8081/api/v1/submit HTTP/1.1
-content-type: application/json
-
+CONFIG = """
 {
   "system": {
     "verbose": 0,
@@ -38,7 +34,7 @@ content-type: application/json
           },
           "response_json": true,
           "response_json_field": "response",
-          "request_timeout": 30
+          "request_timeout": 3600
         }
       }
     }
@@ -65,14 +61,31 @@ content-type: application/json
     "engine": "garak"
   }
 }
+"""
 
-###
-POST http://ollama:11434/api/chat HTTP/1.1
-content-type: application/json
+    # async with websockets.connect(
+    #     "ws://localhost:8081/ws/v1/submit",
+    #     ping_interval=10,  # seconds between pings
+    #     ping_timeout=90    # seconds to wait for pong
+    # ) as ws:
 
-{
-    "model": "llama3",
-    "messages": [{"role": "user", "content": "Why is the sky blue?"}]
-}
+async def send_initial_payload():
+    uri = "ws://localhost:8081/ws/v1/submit"
+    async with websockets.connect(
+        uri,
+        ping_interval=10,  # seconds between pings
+        ping_timeout=250000    # seconds to wait for pong
+    ) as ws:
 
+        await ws.send(CONFIG)
 
+        # Receive and print responses
+        while True:
+            try:
+                msg = await ws.recv()
+                print(f"{msg}")
+            except websockets.exceptions.ConnectionClosed:
+                break
+
+if __name__ == "__main__":
+    asyncio.run(send_initial_payload())
