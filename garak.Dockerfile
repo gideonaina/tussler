@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     libssl-dev \
     pkg-config \
+    supervisor \
     && rm -rf /var/lib/apt/lists/*
 
 
@@ -32,11 +33,13 @@ WORKDIR /app
 
 COPY ./tussler /app/tussler
 COPY ./pyproject.toml /app/
+COPY ./garak.supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 RUN pip install --upgrade pip
 RUN pip install .
 
-EXPOSE 8081
+EXPOSE 8081 8888
 
 # # Start Uvicorn server
 # CMD ["uvicorn", "tussler.launcher:app", "--host", "0.0.0.0", "--port", "8081"]
+CMD ["supervisord", "-n"]
