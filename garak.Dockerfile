@@ -13,6 +13,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin \
 && chmod +x /usr/local/bin/just
 
+# make supervisor’s log dir and hand it off to the unprivileged user
+RUN mkdir -p /var/log/supervisor \
+ && chown -R nobody:nogroup /var/log/supervisor
 
 RUN useradd -m -s /bin/bash garakuser
 USER garakuser
@@ -33,7 +36,7 @@ WORKDIR /app
 
 COPY ./tussler /app/tussler
 COPY ./pyproject.toml /app/
-COPY ./garak.supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY ./garak.supervisord.conf /etc/supervisor/supervisord.conf
 
 RUN pip install --upgrade pip
 RUN pip install .

@@ -85,11 +85,10 @@ services:
   tussler-dev:
     build:
       context: .
-      dockerfile: tussler.Dockerfile
-    # env_file: docker-compose.env
-    # network_mode: "service:ollama"
+      dockerfile: garak.Dockerfile
     ports:
       - 8081:8081
+      - 8888:8888
     depends_on:
       - model_loader
       # - open-webui
@@ -100,8 +99,8 @@ services:
       - PYTHONUNBUFFERED=1
       # - OLLAMA_HOST=http://ollama:11434
       # - OLLAMA_BASE_URL=http://ollama:11434
-    command: >
-      sh -c "uvicorn tussler.launcher:app --host 0.0.0.0 --port 8081 --log-level info --workers 10 --reload"
+    # command: >
+    #   sh -c "uvicorn tussler.launcher:app --host 0.0.0.0 --port 8081 --log-level info --workers 10 --reload"
     # command: sleep infinity
     restart: unless-stopped
     profiles: 
@@ -117,17 +116,6 @@ services:
     restart: unless-stopped
     profiles: 
       - prod
-      - dev
-
-  notebook:
-    image: quay.io/jupyter/datascience-notebook:2025-03-14
-    container_name: notebook
-    ports:
-      - 8888:8888
-    volumes:
-      - notebook_data:/home/jovyan/work
-    restart: unless-stopped
-    profiles: 
       - dev
 
 
