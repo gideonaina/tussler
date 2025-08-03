@@ -1,6 +1,6 @@
-import garak
 # from garak import config
 from garak import core
+
 
 def queue_probes():
     # Initialize Garak configuration

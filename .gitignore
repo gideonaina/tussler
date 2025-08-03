@@ -10,3 +10,5 @@ dist/
 *.pyzw
 
 tmp**
+
+.DS_Store

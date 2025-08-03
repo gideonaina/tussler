@@ -1,14 +1,21 @@
-from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketException, WebSocketDisconnect
-from pydantic import BaseModel
-import tempfile
-import os
-import garak.cli
-import json
-import hashlib
 import asyncio
-import subprocess
-import logging
 import contextlib
+import hashlib
+import json
+import logging
+import os
+import subprocess
+import tempfile
+
+import garak.cli
+from fastapi import (
+    FastAPI,
+    HTTPException,
+    Request,
+    WebSocket,
+    WebSocketDisconnect,
+    WebSocketException,
+)
 
 # logging.basicConfig(
 #     level=logging.INFO,

@@ -1,4 +1,5 @@
 import asyncio
+
 import websockets
 
 CONFIG = """
@@ -70,7 +71,7 @@ CONFIG = """
     # ) as ws:
 
 async def send_initial_payload():
-    uri = "ws://localhost:8081/ws/v1/submit"
+    uri = "ws://localhost:8080/ws/v1/submit"
     async with websockets.connect(
         uri,
         ping_interval=10,  # seconds between pings

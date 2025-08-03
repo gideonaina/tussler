@@ -1,0 +1,46 @@
+[project]
+name = "tussler-garak"
+version = "0.1.0"
+description = "AI read teaming component in Tussler based on other open source Garak project"
+authors = [
+    { name="Gideon Aina", email="gideonaina@live.com" }
+]
+
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.115.14",
+    "garak>=0.11.0",
+    "jupyter>=1.1.1",
+    "pydantic>=2.11.7",
+    "uvicorn>=0.34.3",
+    "websockets>=15.0.1",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.12.7"
+]
+
+[tool.setuptools]
+packages = { find = { where = ["src"], include = ["*"] } }
+
+[tool.ruff]
+line-length = 88
+target-version = "py38"
+lint.select = ["E", "F", "B", "C", "D", "I", "S"]
+lint.extend-ignore = [
+  "E203",    # keep ignoring conflicting whitespace rule
+  "D100",    # missing module docstring
+  "D104",    # missing package docstring
+  "D103",    # missing docstring in public function
+  "D203",    # disable incorrect-blank-line-before-class
+  "D213",    # disable multi-line-summary-second-line
+]
+exclude = [".git", ".venv", "__pycache__", "build", "dist", ".eggs", "*.egg-info"]
+
+[project.scripts]
+lint = "ruff:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
