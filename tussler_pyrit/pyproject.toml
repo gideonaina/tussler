@@ -8,17 +8,19 @@ authors = [
 
 requires-python = ">=3.10"
 dependencies = [
+    "azure-cognitiveservices-speech>=1.45.0",
     "fastapi>=0.115.14",
     "jupyter>=1.1.1",
     "pydantic>=2.11.7",
     "pyrit>=0.9.0",
     "uvicorn>=0.34.3",
-    "websockets>=15.0.1"
+    "websockets>=15.0.1",
 ]
 
 [dependency-groups]
 dev = [
-    "ruff>=0.12.7"
+    "debugpy>=1.8.15",
+    "ruff>=0.12.7",
 ]
 
 [tool.setuptools]

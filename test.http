@@ -67,12 +67,28 @@ content-type: application/json
 }
 
 ###
-POST http://ollama:11434/api/chat HTTP/1.1
+POST http://localhost:11434/api/chat HTTP/1.1
 content-type: application/json
 
 {
     "model": "llama3",
-    "messages": [{"role": "user", "content": "Why is the sky blue?"}]
+    "messages": [{"role": "user", "content": "List 10 Shakespeare plays?"}],
+    "max_tokens": 50,
+    "temperature": 0.2,
+    "stream": false
 }
 
+###
+GET http://localhost:11434/api/tags HTTP/1.1
 
+###
+POST http://localhost:11434/api/generate
+content-type: application/json
+
+{
+  "model": "llama3",
+  "prompt": "Why is the sky blue?",
+  "max_tokens": 50,
+  "temperature": 0.2,
+  "stream": false
+}
