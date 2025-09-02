@@ -17,23 +17,23 @@ help:
 
 start:
 	@echo "Running with LOCAL_LLM=$(LOCAL_LLM)"
-	LOCAL_LLM=$(LOCAL_LLM) docker-compose --profile $(PROFILE) -f $(COMPOSE_FILE) up
+	LOCAL_LLM=$(LOCAL_LLM) docker compose --profile $(PROFILE) -f $(COMPOSE_FILE) up
 
 fresh-start:
 	@echo "Running with LOCAL_LLM=$(LOCAL_LLM)"
-	docker-compose -f $(COMPOSE_FILE) build --no-cache && LOCAL_LLM=$(LOCAL_LLM) docker-compose --profile $(PROFILE) -f $(COMPOSE_FILE) up --build
+	docker compose -f $(COMPOSE_FILE) build --no-cache && LOCAL_LLM=$(LOCAL_LLM) docker compose --profile $(PROFILE) -f $(COMPOSE_FILE) up --build
 
 model:
-	LOCAL_LLM=$(LOCAL_LLM) docker-compose --profile model -f $(COMPOSE_FILE) up 
+	LOCAL_LLM=$(LOCAL_LLM) docker compose --profile model -f $(COMPOSE_FILE) up 
 
 stop:
-	LOCAL_LLM=$(LOCAL_LLM) docker-compose --profile $(PROFILE) -f $(COMPOSE_FILE) down
+	LOCAL_LLM=$(LOCAL_LLM) docker compose --profile $(PROFILE) -f $(COMPOSE_FILE) down
 
 clean:
-	LOCAL_LLM=$(LOCAL_LLM) docker-compose -f $(COMPOSE_FILE) down -v
+	LOCAL_LLM=$(LOCAL_LLM) docker compose -f $(COMPOSE_FILE) down -v
 
 deep-clean:
-	LOCAL_LLM=$(LOCAL_LLM) docker-compose -f $(COMPOSE_FILE) down -v --remove-orphans
+	LOCAL_LLM=$(LOCAL_LLM) docker compose -f $(COMPOSE_FILE) down -v --remove-orphans
 	LOCAL_LLM=$(LOCAL_LLM) docker volume prune -f
 	LOCAL_LLM=$(LOCAL_LLM) docker network prune -f
 	LOCAL_LLM=$(LOCAL_LLM) docker stop $(shell docker ps -aq) || $(shell exit 0)
